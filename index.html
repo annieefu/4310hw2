@@ -47,7 +47,7 @@
 
         <!-- Vis  -->
         <div id="countries_viz" style="margin-left: 600px; margin-top: -430px;"></div>
-        <svg height="1500" width="1000" class="receiptVis"/>
+        <div style="text-align: center;"><svg height="1500" width="1000" class="receiptVis"/></>
 
         <script>
 
@@ -660,7 +660,6 @@
         
                 filteredData = filteredData.concat(filteredAnimalData);
         
-                // hardcoded
                 let filteredRegionData = filterByRegion(filteredData, regionToStates[regionSelection]);
                 let maxGreenWater = getMaxWaterCost(filteredRegionData, "Green", regionToStates[regionSelection]);
                 let maxBlueWater = getMaxWaterCost(filteredRegionData, "Blue", regionToStates[regionSelection]);
