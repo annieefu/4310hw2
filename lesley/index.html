@@ -1,0 +1,571 @@
+<html>
+
+<head>
+    <title>receipt</title>
+    <meta charset="utf-8" />
+    <script src="https://d3js.org/d3.v5.min.js"></script>
+    <script type="text/javascript" src="helper.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Open+Sans&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Anonymous+Pro&display=swap" rel="stylesheet">
+</head>
+  <body style="text-align: center; background-color: #f6f8ff; margin-top: 50;">
+    <svg height="1500" width="1000" class="receiptVis"/>
+
+  <script>
+    let textColor = "#484848";
+    let darkBlueColor = "#1f5673";
+    let greyColor = "#d2d2d2";
+    let orangeColor = "#ff7a62";
+    let orangeRgb = "rgb(255, 122, 98)";
+    let greyRgb = "rgb(210, 210, 210)";
+
+    let displayFontSize = 16;
+    let buttonFontSize = 12;
+
+    let regionSelection = "";
+    let selectedGroceries = new Set();
+    let groceryData = [];
+    let animalData = [];
+
+    let categoryToEmoji = {
+        "Grains": "🌾",
+        "Vegetables": "🥬",
+        "Fruits": "🍓",
+        "Meat": "🐖"
+    }
+    let regionToStates = {
+        "Northeast": ["Maine", "Massachusetts", "Rhode Island", "Connecticut", "New Hampshire", "Vermont", "New York", "Pennsylvania", 
+            "New Jersey", "Delaware", "Maryland"], 
+        "Southwest": ["Texas", "Oklahoma", "New Mexico", "Arizona"],
+        "West": ["Colorado", "Wyoming", "Montana", "Idaho", "Washington", "Oregon", "Utah", "Nevada", "California", "Alaska", "Hawaii"],
+        "Southeast": ["West Virginia", "Virginia", "Kentucky", "Tennessee", "North Carolina", "South Carolina", "Georgia", "Alabama", 
+            "Mississippi", "Arkansas", "Louisiana", "Florida"],
+        "Midwest": ["Ohio", "Indiana", "Michigan", "Illinois", "Missouri", "Wisconsin", "Minnesota", "Iowa", "Kansas", "Nebraska", 
+            "South Dakota", "North Dakota"]
+    }
+
+    let receiptWidth = 450;
+    let receiptStartX = 550;
+    let receiptStartY = 100;
+
+    const getDataAndDrawVis = async() => {
+        console.log("test");
+        let produceData = await d3.csv("produce_final.csv");
+        groceryData = produceData;
+        let meatData = await d3.csv("meat_final.csv");
+        animalData = meatData;
+        
+        drawReceiptVis(produceData, "receiptVis");
+    }
+
+    function drawReceiptVis(data, svgClass) {
+        let width = 1000;
+        let height = 1500;
+        let padding = 25;
+        let svg = d3.select("." + svgClass);
+
+        let regions = ["Northeast", "Southwest", "West", "Southeast", "Midwest"];
+        let categories = ["Grains", "Vegetables", "Fruits", "Meat"];
+    
+
+        // Add buttons for regions
+        let startX = 10;
+        let startY = 150;
+        let buttonWidth = 75;
+        let buttonSpace = 5;
+        
+        let buttonTotalWidth = startX + ((buttonWidth+buttonSpace)*4 + buttonWidth)/2;
+
+        svg.append("text")
+            .attr("x", buttonTotalWidth)
+            .attr("y", 125)
+            .text("Select a region:")
+            .style("text-anchor", "middle")
+            .style("font-family", "Open Sans")
+            .style("font-size", displayFontSize)
+            .style("font-weight", "bold");
+
+        for (var i = 0; i < regions.length; i++) {
+            createButton(svg, startX + (buttonWidth+buttonSpace)*i, startY, 
+                buttonWidth, regions[i], toggleButtonColor, regions[i], "regionButtons");
+        }
+
+        // Add buttons for grocery items
+        svg.append("text")
+            .attr("x", buttonTotalWidth)
+            .attr("y", 250)
+            .text("Add items to cart:")
+            .style("text-anchor", "middle")
+            .style("font-family", "Open Sans")
+            .style("font-size", displayFontSize)
+            .style("font-weight", "bold");
+
+        let groceryStart = buttonTotalWidth/4;
+        let groceryStartY = 275;
+        let groceryButtonWidth = 85;
+        let grocerySpace = (buttonTotalWidth/2);
+        for (var i = 0; i < categories.length; i++) {
+            svg.append("text")
+            .attr("x", groceryStart + grocerySpace*i)
+            .attr("y", groceryStartY)
+            .text(categories[i])
+            .style("text-anchor", "middle")
+            .style("font-family", "Open Sans")
+            .style("font-size", buttonFontSize)
+            .style("font-weight", "bold");
+
+            let productNameList = (getProductNames(data, categories[i]));
+
+            for (var j = 0; j < productNameList.length; j++) {
+                createButton(svg, groceryStart-groceryButtonWidth/2 + grocerySpace*i, 
+                    groceryStartY + 40*j + 10, groceryButtonWidth, productNameList[j],
+                    addGroceryButton, productNameList[j], "groceryButton");
+            }
+        }
+
+        let productNameList = (getProductNames(animalData, "Meat"));
+        for (var k = 0; k < productNameList.length; k++) {
+            createButton(svg, groceryStart-groceryButtonWidth/2 + grocerySpace*3, 
+                    groceryStartY + 40*k + 10, groceryButtonWidth, productNameList[k],
+                    addGroceryButton, productNameList[k], "groceryButton");
+        }
+
+        // Add button for checkout and reset 
+        svg.append("text")
+            .attr("x", buttonTotalWidth)
+            .attr("y", 665)
+            .text("Ready to check out?")
+            .style("text-anchor", "middle")
+            .style("font-family", "Open Sans")
+            .style("font-size", displayFontSize)
+            .style("font-weight", "bold");
+
+        createButton(svg, groceryStart-groceryButtonWidth/2 + grocerySpace, 685, 
+            groceryButtonWidth, "Checkout", createReceipt, svg, "checkoutButton", "checkoutText");
+        createButton(svg, groceryStart-groceryButtonWidth/2 + grocerySpace*2, 685, 
+            groceryButtonWidth, "Reset", resetGroceries, "", "resetButton");
+
+        // Draw border of receipt
+        svg.append("rect")
+            .attr("x", receiptStartX)
+            .attr("y", receiptStartY)
+            .attr("width", receiptWidth)
+            .attr("height", 800)
+            .style('stroke', greyColor)
+            .style('fill', 'none');
+        
+        // Add receipt text
+        svg.append("text")
+            .attr("x", receiptStartX + receiptWidth/2)
+            .attr("y", receiptStartY+30)
+            .text("RECEIPT")
+            .style("text-anchor", "middle")
+            .style("font-family", "Anonymous Pro")
+            .style("font-size", displayFontSize)
+            .style("font-weight", "bold");
+        svg.append("text")
+            .attr("x", receiptStartX + receiptWidth/2)
+            .attr("y", receiptStartY+60)
+            .text("WATER FOOTPRINT")
+            .style("text-anchor", "middle")
+            .style("font-family", "Anonymous Pro")
+            .style("font-size", displayFontSize);
+        svg.append("text")
+            .attr("x", receiptStartX + 25)
+            .attr("y", receiptStartY+100)
+            .text("ORDER #00001")
+            .style("font-family", "Anonymous Pro")
+            .style("font-size", displayFontSize);
+        svg.append("text")
+            .attr("x", receiptStartX + 25)
+            .attr("y", receiptStartY+120)
+            .text("THURSDAY, OCTOBER 8, 2020")
+            .style("font-family", "Anonymous Pro")
+            .style("font-size", displayFontSize);
+        drawReceiptLine(svg, receiptStartX + receiptWidth/2, receiptStartY+140)
+        svg.append("text")
+            .attr("x", receiptStartX + 25)
+            .attr("y", receiptStartY+150)
+            .text("CAT.")
+            .style("font-weight", "bold")
+            .style("font-family", "Anonymous Pro")
+            .style("font-size", buttonFontSize);
+        svg.append("text")
+            .attr("x", receiptStartX + 80)
+            .attr("y", receiptStartY+150)
+            .text("ITEM")
+            .style("font-weight", "bold")
+            .style("font-family", "Anonymous Pro")
+            .style("font-size", buttonFontSize);
+        svg.append("text")
+            .attr("x", receiptStartX + 205)
+            .attr("y", receiptStartY+150)
+            .text("TOTAL WATER COST FOR REGION (M/TON)")
+            .style("font-weight", "bold")
+            .style("font-family", "Anonymous Pro")
+            .style("font-size", buttonFontSize);
+        svg.append("text")
+            .attr("x", receiptStartX + 225)
+            .attr("y", receiptStartY+165)
+            .text("GREEN")
+            .style("font-family", "Anonymous Pro")
+            .style("font-size", buttonFontSize);
+        svg.append("text")
+            .attr("x", receiptStartX + 300)
+            .attr("y", receiptStartY+165)
+            .text("BLUE")
+            .style("font-family", "Anonymous Pro")
+            .style("font-size", buttonFontSize);
+        svg.append("text")
+            .attr("x", receiptStartX + 375)
+            .attr("y", receiptStartY+165)
+            .text("GREY")
+            .style("font-family", "Anonymous Pro")
+            .style("font-size", buttonFontSize);
+        drawReceiptLine(svg, receiptStartX + receiptWidth/2, receiptStartY+175);
+
+    }
+
+    function addSingleGroceryItem(svg, x, y, itemGreen, itemBlue, itemGrey, regionList, maxGreenWater, 
+        maxBlueWater, maxGreyWater) {
+        let itemHeight = 30;
+        
+        //Add emoji for category
+        svg.append("text")
+            .attr("id", "receiptTemp")
+            .attr("x", x+25)
+            .attr("y", y + itemHeight/2)
+            .text(categoryToEmoji[itemGreen["Product Category"]])
+            .style("alignment-baseline", "middle")
+            .style("font-size", buttonFontSize);
+        
+        // Add item name 
+        svg.append("text")
+            .attr("id", "receiptTemp")
+            .attr("x", x+80)
+            .attr("y", y + itemHeight/2)
+            .text(itemGreen["Product description (HS)"])
+            .style("alignment-baseline", "middle")
+            .style("font-family", "Anonymous Pro")
+            .style("font-size", buttonFontSize);
+
+        // Add green water usage
+        let totalGreenUsage = getTotalWaterCost(itemGreen, regionList);
+        svg.append("text")
+            .attr("id", "receiptTemp")
+            .attr("x", x+225)
+            .attr("y", y + itemHeight/2)
+            .text(totalGreenUsage)
+            .style("alignment-baseline", "middle")
+            .style("font-family", "Anonymous Pro")
+            .style("font-size", buttonFontSize)
+            .style("fill", function() {
+                if (totalGreenUsage == maxGreenWater) {
+                    return orangeColor;
+                } else {
+                    return "black";
+                }
+            });
+
+        // Add blue water usage
+        let totalBlueUsage = getTotalWaterCost(itemBlue, regionList);
+        svg.append("text")
+            .attr("id", "receiptTemp")
+            .attr("x", x+300)
+            .attr("y", y + itemHeight/2)
+            .text(totalBlueUsage)
+            .style("alignment-baseline", "middle")
+            .style("font-family", "Anonymous Pro")
+            .style("font-size", buttonFontSize)
+            .style("fill", function() {
+                console.log(maxBlueWater)
+                if (totalBlueUsage == maxBlueWater) {
+                    return orangeColor;
+                } else {
+                    return "black";
+                }
+            });
+
+        // Add grey water usage
+        let totalGreyUsage = getTotalWaterCost(itemGrey, regionList);
+        svg.append("text")
+            .attr("id", "receiptTemp")
+            .attr("x", x+375)
+            .attr("y", y + itemHeight/2)
+            .text(totalGreyUsage)
+            .style("alignment-baseline", "middle")
+            .style("font-family", "Anonymous Pro")
+            .style("font-size", buttonFontSize)
+            .style("fill", function() {
+                if (totalGreyUsage == maxGreyWater) {
+                    return orangeColor;
+                } else {
+                    return "black";
+                }
+            });
+
+    }
+
+    function drawReceiptLine(svg, x, y, id = "") {
+        svg.append("text")
+            .attr("id", id)
+            .attr("x", x)
+            .attr("y", y)
+            .text("------------------------------------------------")
+            .style("text-anchor", "middle")
+            .style("font-family", "Anonymous Pro")
+            .style("font-size", displayFontSize);
+    }
+
+    function createButton(svg, x, y, width, buttonText, buttonf, input, className = "", textName = "") {
+        svg.append("rect")
+            .attr("class", className)
+            .attr("id", "regionButton" + buttonText.replace(/\s/g,''))
+            .attr("x", x)
+            .attr("y", y)
+            .attr("width", width)
+            .attr("height", 30)
+            .attr("rx", 3)
+            .attr("ry", 3)
+            .style("cursor", "pointer")
+            .style('stroke', 'none')
+            .style('fill', greyColor)
+            .on("click", function(d) {
+                buttonf(input);
+            });
+        svg.append("text")
+            .attr("class", textName)
+            .attr("x", x+width/2)
+            .attr("y", y+15)
+            .text(buttonText)
+            .style("text-anchor", "middle")
+            .style("font-family", "Open Sans")
+            .style("font-size", buttonFontSize)
+            .style("cursor", "pointer")
+            .style("alignment-baseline", "middle")
+            .on("click", function() {
+                buttonf(input);
+            });
+    }
+
+    function toggleButtonColor(text) {
+        regionSelection = text;
+
+        d3.select("#hintText").remove();
+
+        d3.selectAll(".regionButtons")
+            .transition()
+            .duration(200)
+            .style("fill", greyColor);
+        d3.select("#regionButton" + text)
+            .transition()
+            .duration(200)
+            .style("fill", orangeColor);
+    }
+
+    function addGroceryButton(text) {
+        d3.select("#regionButton" + text.replace(/\s/g,''))
+            .transition()
+            .duration(200)
+            .style("fill", function(d) {
+                if (this.style.fill == orangeRgb) {
+                    selectedGroceries.delete(text);
+                    return greyColor;
+                } else {
+                    selectedGroceries.add(text);
+                    return orangeColor;
+                }
+            });
+    }
+
+    function createReceipt(svg) {
+        if (regionSelection !== "") {
+        let filteredData = groceryData.filter(function(d) {
+            return selectedGroceries.has(d["Product description (HS)"])
+        });
+        let filteredAnimalData = animalData.filter(function(d) {
+            return selectedGroceries.has(d["Product description (HS)"])
+        });
+
+        filteredData = filteredData.concat(filteredAnimalData);
+
+        // hardcoded
+        let filteredRegionData = filterByRegion(filteredData, regionToStates[regionSelection]);
+        let maxGreenWater = getMaxWaterCost(filteredRegionData, "Green", regionToStates[regionSelection]);
+        let maxBlueWater = getMaxWaterCost(filteredRegionData, "Blue", regionToStates[regionSelection]);
+        let maxGreyWater = getMaxWaterCost(filteredRegionData, "Grey", regionToStates[regionSelection]);
+    
+        // Add each grocery item to receipt
+        for (var k = 0; k < filteredRegionData.length; k+=3) {
+            addSingleGroceryItem(svg, receiptStartX, receiptStartY+175 + 25*(k/3), filteredRegionData[k], 
+            filteredRegionData[k+1], filteredRegionData[k+2], regionToStates[regionSelection], maxGreenWater, 
+            maxBlueWater, maxGreyWater);
+        }
+
+        let finalY = receiptStartY+185 + 25*(filteredRegionData.length/3);
+        drawReceiptLine(svg, receiptStartX + receiptWidth/2, finalY, "receiptTemp");
+
+        let usGreenAvg = getUsTotalAverageByColor(filteredData, "Green");
+        let usBlueAvg = getUsTotalAverageByColor(filteredData, "Blue");
+        let usGreyAvg = getUsTotalAverageByColor(filteredData, "Grey");
+
+        let globalGreenAvg = getGlobalTotalAverageByColor(filteredData, "Green");
+        let globalBlueAvg = getGlobalTotalAverageByColor(filteredData, "Blue");
+        let globalGreyAvg = getGlobalTotalAverageByColor(filteredData, "Grey");
+
+        svg.append("text")
+            .attr("id", "receiptTemp")
+            .attr("x", receiptStartX + 25)
+            .attr("y", finalY+10)
+            .text("US AVERAGE WATER COST:")
+            .style("font-family", "Anonymous Pro")
+            .style("font-size", buttonFontSize);
+        svg.append("text")
+            .attr("id", "receiptTemp")
+            .attr("x", receiptStartX + 25)
+            .attr("y", finalY+30)
+            .text("GLOBAL AVERAGE WATER COST:")
+            .style("font-family", "Anonymous Pro")
+            .style("font-size", buttonFontSize);
+        svg.append("text")
+            .attr("id", "receiptTemp")
+            .attr("x", receiptStartX+225)
+            .attr("y", finalY+10)
+            .text(Math.trunc(usGreenAvg))
+            .style("alignment-baseline", "middle")
+            .style("font-family", "Anonymous Pro")
+            .style("font-weight", "bold")
+            .style("font-size", buttonFontSize);
+        svg.append("text")
+            .attr("id", "receiptTemp")
+            .attr("x", receiptStartX+300)
+            .attr("y", finalY+10)
+            .text(Math.trunc(usBlueAvg))
+            .style("alignment-baseline", "middle")
+            .style("font-family", "Anonymous Pro")
+            .style("font-weight", "bold")
+            .style("font-size", buttonFontSize);
+        svg.append("text")
+            .attr("id", "receiptTemp")
+            .attr("x", receiptStartX+375)
+            .attr("y", finalY+10)
+            .text(Math.trunc(usGreyAvg))
+            .style("alignment-baseline", "middle")
+            .style("font-family", "Anonymous Pro")
+            .style("font-weight", "bold")
+            .style("font-size", buttonFontSize);
+        svg.append("text")
+            .attr("id", "receiptTemp")
+            .attr("x", receiptStartX+225)
+            .attr("y", finalY+30)
+            .text(Math.trunc(globalGreenAvg))
+            .style("alignment-baseline", "middle")
+            .style("font-family", "Anonymous Pro")
+            .style("font-weight", "bold")
+            .style("font-size", buttonFontSize);
+        svg.append("text")
+            .attr("id", "receiptTemp")
+            .attr("x", receiptStartX+300)
+            .attr("y", finalY+30)
+            .text(Math.trunc(globalBlueAvg))
+            .style("alignment-baseline", "middle")
+            .style("font-family", "Anonymous Pro")
+            .style("font-weight", "bold")
+            .style("font-size", buttonFontSize);
+        svg.append("text")
+            .attr("id", "receiptTemp")
+            .attr("x", receiptStartX+375)
+            .attr("y", finalY+30)
+            .text(Math.trunc(globalGreyAvg))
+            .style("alignment-baseline", "middle")
+            .style("font-family", "Anonymous Pro")
+            .style("font-weight", "bold")
+            .style("font-size", buttonFontSize);
+
+        drawReceiptLine(svg, receiptStartX + receiptWidth/2, finalY+40, "receiptTemp");
+
+
+        svg.append("text")
+            .attr("id", "receiptTemp")
+            .attr("x", receiptStartX + 25)
+            .attr("y", finalY+60)
+            .text("CARD #: **** **** **** 4310")
+            .style("font-family", "Anonymous Pro")
+            .style("font-size", buttonFontSize);
+        svg.append("text")
+        .attr("id", "receiptTemp")
+            .attr("x", receiptStartX + 25)
+            .attr("y", finalY+80)
+            .text("AUTH CODE: 012384627")
+            .style("font-family", "Anonymous Pro")
+            .style("font-size", buttonFontSize);
+        svg.append("text")
+        .attr("id", "receiptTemp")
+            .attr("x", receiptStartX + 25)
+            .attr("y", finalY+100)
+            .text("CARDHOLDERS: ANNIE FU AND LESLEY HUANG")
+            .style("font-family", "Anonymous Pro")
+            .style("font-size", buttonFontSize);
+        svg.append("text")
+            .attr("id", "receiptTemp")
+            .attr("x", receiptStartX + receiptWidth/2)
+            .attr("y", finalY+130)
+            .text("THANKS FOR VISITING!")
+            .style("text-anchor", "middle")
+            .style("font-weight", "bold")
+            .style("font-family", "Anonymous Pro")
+            .style("font-size", buttonFontSize);
+
+        d3.select(".checkoutButton")
+            .transition()
+            .duration(200)
+            .style("opacity", 0);
+        d3.select(".checkoutText")
+            .transition()
+            .duration(200)
+            .style("opacity", 0);
+    } else {
+        svg.append("text")
+            .attr("id", "hintText")
+            .attr("x", 10+ ((75+5)*4 + 75)/2)
+            .attr("y", 740)
+            .text("Please select a region!")
+            .style("text-anchor", "middle")
+            .style("font-family", "Open Sans")
+            .style("font-size", displayFontSize)
+            .style("font-weight", "bold");
+    }
+    }
+
+    function resetGroceries(text) {
+        
+        selectedGroceries.clear();
+        d3.selectAll("#receiptTemp").remove();
+        toggleButtonColor(text);
+        regionSelection = "";
+
+        d3.selectAll(".groceryButton")
+            .transition()
+            .duration(200)
+            .style("fill", greyColor);
+
+        d3.select(".checkoutButton")
+            .transition()
+            .duration(200)
+            .style("opacity", 1);
+        
+        d3.select(".checkoutText")
+            .transition()
+            .duration(200)
+            .style("opacity", 1);
+    }
+
+    function main() {
+        getDataAndDrawVis();
+    }
+
+    main();
+
+  </script>
+    </body>
+</html>

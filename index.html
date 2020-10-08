@@ -1,320 +1,289 @@
-
 <!DOCTYPE html>
 <meta charset="utf-8">
 
 <head>
-    <title>af397, lh484 HW2 INFO 4310</title>
-    
+    <title>US Agricultural Water Footprint</title>
     <link href="https://fonts.googleapis.com/css2?family=Raleway:wght@300&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Raleway:wght@700&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@300&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@600&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500&display=swap" rel="stylesheet">
-      <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.14.2/styles/default.min.css">
-      <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.14.2/highlight.min.js"></script>
-      <script src="https://d3js.org/d3.v5.min.js"></script>
-      <script src="https://d3js.org/topojson.v2.min.js"></script>
+    <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.14.2/styles/default.min.css">
+    <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.14.2/highlight.min.js"></script>
+    <script src="https://d3js.org/d3.v5.min.js"></script>
+    <script src="https://d3js.org/topojson.v2.min.js"></script>
 
-      
-      <style>
-    
-      .h1 {
-        font-family: 'Open Sans', sans-serif;
-        font-size: 26px;
-      }
+    <style>
+        .h1 {
+            font-family: 'Open Sans', sans-serif;
+            font-size: 26px;
+        }
 
-body{
-    background-color: #F6F8FF;
-}
+        body {
+            background-color: #F6F8FF;
+        }
 
-strong{
-    color: rgba(0, 95, 99, 0.959)
-}
-    
+        strong {
+            color: rgba(0, 95, 99, 0.959)
+        }
+    </style>
 
+</head>
 
+<body>
+    <div style="margin: 50px;">
 
+        <h1
+            style="font-family: Raleway; text-align: left; color: #1F5673; font-size: 45; padding-left: 35px; padding-top: 0px; padding-bottom: 15px;">
+            How Sustainable is your Grocery Basket?</h1>
 
-      </style>
-    
-    </head>
-    <body>
-      <div style = "margin: 50px;">
+        <div id="buttons"></div>
 
-        
- <h1 style="font-family: Raleway; text-align: left; color: #1F5673; font-size: 45; padding-left: 35px; padding-top: 0px; padding-bottom: 15px;"> How Sustainable is your Grocery Basket?</h1>
- 
- <div id="buttons"></div>
- 
- <p id = "textbox" style="font-family: Open Sans; color: #1F5673; font-size: 16px; 
- margin-top: -6px; margin-left: 20px; width: 400px; margin-bottom: 15px; 
- padding-left: 35px;"></p>
- 
- <!-- Vis  -->
-<div id="countries_viz" style="margin-left: 600px; margin-top: -430px;"></div>
+        <p id="textbox" style="font-family: Open Sans; color: #1F5673; font-size: 16px; 
+        margin-top: -6px; margin-left: 20px; width: 400px; margin-bottom: 15px; 
+        padding-left: 35px;"></p>
 
+        <!-- Vis  -->
+        <div id="countries_viz" style="margin-left: 600px; margin-top: -430px;"></div>
 
+        <script>
 
-<script>
- 
+            // PAGE VARIABLES
+            var pagenum = 1;
 
-// PAGE VARIABLES
-var pagenum = 1;
+            // COLOR VARIABLES
+            const blue = "#1F5673";
+            const grey = "#D2D2D2";
+            const orange = "#FF7A62";
 
-// COLOR VARIABLES
-    const blue = "#1F5673";
-    const grey = "#D2D2D2";
-    const orange = "#FF7A62";
+            const blueColor = "#1F5673";
+            const greyColor = "#D2D2D2";
+            const orangeColor = "#FF7A62";
 
-
-    const blueColor = "#1F5673";
-    const greyColor = "#D2D2D2";
-    const orangeColor = "#FF7A62";
-
-
-// LESLEY'S BUTTON CODE
-function createButton_one(svg, x, y, width, buttonText, buttonf, input) {
-        svg.append("rect")
-            .attr("x", x)
-            .attr("y", y)
-            .attr("width", width)
-            .attr("height", 30)
-            .attr("rx", 3)
-            .attr("ry", 3)
-            .style("cursor", "pointer")
-            .style('fill', greyColor)
-            .on("click", function(d) {
-                buttonf(input);
-                if (buttonText =="Overall Sustainability") {
-                    pagenum=1;
-                }
-                else if (buttonText =="Fisheries Depleted") {
-                    pagenum=2;
-                }
-                else if (buttonText =="Water Imports") {
-                    pagenum=3;
-                }
-                else if (buttonText =="Water Footprint") {
-                    pagenum=4;
-                }
-            });
+            // LESLEY'S BUTTON CODE (MODIFIED) - used for the first vis
+            function createButton_one(svg, x, y, width, buttonText, buttonf, input) {
+                svg.append("rect")
+                    .attr("x", x)
+                    .attr("y", y)
+                    .attr("width", width)
+                    .attr("height", 30)
+                    .attr("rx", 3)
+                    .attr("ry", 3)
+                    .style("cursor", "pointer")
+                    .style('fill', greyColor)
+                    .on("click", function (d) {
+                        buttonf(input);
+                        if (buttonText == "Overall Sustainability") {
+                            pagenum = 1;
+                        }
+                        else if (buttonText == "Fisheries Depleted") {
+                            pagenum = 2;
+                        }
+                        else if (buttonText == "Water Imports") {
+                            pagenum = 3;
+                        }
+                        else if (buttonText == "Water Footprint") {
+                            pagenum = 4;
+                        }
+                    });
 
 
-        svg.append("text")
-            .attr("x", x+width/2)
-            .attr("y", y+15)
-            .text(buttonText)
-            .style("text-anchor", "middle")
-            .style("font-family", "Open Sans")
-            .style("font-size", "14px")
-            .style("cursor", "pointer")
-            .style("alignment-baseline", "middle")
-            .on("click", function() {
-                buttonf(input); 
-                if (buttonText =="Overall Sustainability") {
-                    pagenum=1;
-                }
-                else if (buttonText =="Fisheries Depleted") {
-                    pagenum=2;
-                }
-                else if (buttonText =="Water Imports") {
-                    pagenum=3;
-                }
-                else if (buttonText =="Water Footprint") {
-                    pagenum=4;
-                }
-            });
-    }
-
-
-
-// SVG1 VARIABLES
-var margin = {top: 30, right: 00, bottom: 70, left: 100},
-    width = 700 - margin.left - margin.right,
-    height = 600 - margin.top - margin.bottom;
-
-
-
-// APPEND SVG
-    var svg1 = d3.select("#countries_viz")
-    .append("svg")
-        .attr("width", width + margin.left + margin.right)
-        .attr("height", height + margin.top + margin.bottom)
-    .append("g")
-        .attr("transform",
-            "translate(" + margin.left + "," + margin.top + ")");
-    
-    var svgbuttons = d3.select("#buttons")
-    .append("svg")
-        .attr("width", "500px")
-        .attr("height", "50px")
-    .append("g")
-    .attr("transform",
-            "translate(" + margin.left + "," + margin.top + ")");
-
-    var svgtext = d3.select("#textbox")
-    .append("svg")
-        .attr("width", "500px")
-        .attr("height", "400px")
-    .append("g");
-
-
-      const requestData = async function() {
-    
-
-var text = svgtext.selectAll("g")
-text.append("text")
-    .attr("x", 0)
-    .attr("y", 0)
-    .attr("dy", ".35em")
-    .text(function (d) {
-        if (pagenum==1) {
-            return "text1";
-                }
-        else if (pagenum==2) {
-            return  "text2";
-                }
-        else if (pagenum==3 ) {
-            return  "text3";
-                }
-        else if (pagenum==4) {
-                    return  "text4";
-                }
-
-    });
-          
-
-// LOADING DATASETS
-        // The overall Sustainability Score
-        const sorted_overall = await d3.csv("sorted_overall.csv");
-        sorted_overall.forEach(function(d) {
-            d.Overall = parseInt(d.Overall);
-        });
-
-        // Water Footprint Values
-        const footprint = await d3.csv("sorted_waterfootprint.csv");
-        footprint.forEach(function(d) {
-            d.Overall = parseInt(d.Overall);
-        });
-
-
-        //Fisheries Depleted Percentage
-        const fisherie = await d3.csv("sorted_fisheries.csv");
-        fisherie.forEach(function(d) {
-            d.Overall = parseInt(d.Overall);
-        });
-
-        //Imports
-        const imports = await d3.csv("sorted_imports.csv");
-        imports.forEach(function(d) {
-            d.Overall = parseInt(d.Overall);
-        });
-
-
-
-
-   
-        createButton_one(svgbuttons, -70, -30, 125, "Overall Sustainability", update, sorted_overall);
-        createButton_one(svgbuttons, 60, -30, 120, "Fisheries Depleted", update, fisherie);
-        createButton_one(svgbuttons, 185, -30, 100, "Water Imports", update, imports);
-        createButton_one(svgbuttons, 300, -30, 100, "Water Footprint", update, footprint);
-
-
-
-// X AXIS
-var x = d3.scaleLinear()
-  .range([ 5, width-margin.left-margin.right]);
-var xAxis = svg1.append("g")
-  .attr("transform", "translate(0," + height + ")")
-  .style("font-size", "12px");
-
-// Y AXIS
-var y = d3.scaleBand()
-  .range([ 0, height])
-  .padding(0.2);
-var yAxis = svg1.append("g")
-  .attr("class", "myYaxis")
-  .style("font-size", "12px");
-
-
-// UPDATE FUNCTION
-function update(data) {
-
-
-// Y UPDATE
-y.domain(data.map(function(d) { return d.Country; }));
-  yAxis.call(d3.axisLeft(y))
-
-// X UPDATE
-if (d3.min(data, function(d) { return d.Overall }) <0) {
-    x.domain([d3.min(data, function(d) {return d.Overall}), d3.max(data, function(d) { return d.Overall })]);
-}
-else {
-    x.domain([0, d3.max(data, function(d) { return d.Overall })*1.05]);
-}
-
-  xAxis.transition().duration(2000).call(d3.axisBottom(x));
-
-
-// VARIABLE to HANDLE UPDATES
-    var up = svg1.selectAll("rect")
-    .data(data)
-
-// APPENDING BARS
-up
-    .enter()
-    .append("rect") 
-    .merge(up)
-    .transition() 
-    .duration(2000)
-        .attr("x", 5)
-        .attr("y", function(d) { return y(d.Country); })
-        .attr("height", "17px")
-        .attr("width", function(d) { return x(d.Overall)-5;})
-        .attr("fill", function(d) {
-            if (d.Country =="United States") {
-            return blue;
-            } 
-            else {
-            return grey;
+                svg.append("text")
+                    .attr("x", x + width / 2)
+                    .attr("y", y + 15)
+                    .text(buttonText)
+                    .style("text-anchor", "middle")
+                    .style("font-family", "Open Sans")
+                    .style("font-size", "14px")
+                    .style("cursor", "pointer")
+                    .style("alignment-baseline", "middle")
+                    .on("click", function () {
+                        buttonf(input);
+                        if (buttonText == "Overall Sustainability") {
+                            pagenum = 1;
+                        }
+                        else if (buttonText == "Fisheries Depleted") {
+                            pagenum = 2;
+                        }
+                        else if (buttonText == "Water Imports") {
+                            pagenum = 3;
+                        }
+                        else if (buttonText == "Water Footprint") {
+                            pagenum = 4;
+                        }
+                    });
             }
-        })
-        .attr("stroke", function(d) {
-            if (d.Overall<0) {
-                console.log("less")
-            return "lightgreen";
-            } 
-            else {
-            return "black";
+
+
+            // SVG1 VARIABLES
+            var margin = { top: 30, right: 00, bottom: 70, left: 100 },
+                width = 700 - margin.left - margin.right,
+                height = 600 - margin.top - margin.bottom;
+
+
+            // APPEND SVG
+            var svg1 = d3.select("#countries_viz")
+                .append("svg")
+                .attr("width", width + margin.left + margin.right)
+                .attr("height", height + margin.top + margin.bottom)
+                .append("g")
+                .attr("transform",
+                    "translate(" + margin.left + "," + margin.top + ")");
+
+            var svgbuttons = d3.select("#buttons")
+                .append("svg")
+                .attr("width", "500px")
+                .attr("height", "50px")
+                .append("g")
+                .attr("transform",
+                    "translate(" + margin.left + "," + margin.top + ")");
+
+            var svgtext = d3.select("#textbox")
+                .append("svg")
+                .attr("width", "500px")
+                .attr("height", "400px")
+                .append("g");
+
+
+            const requestData = async function () {
+
+                var text = svgtext.selectAll("g")
+                text.append("text")
+                    .attr("x", 0)
+                    .attr("y", 0)
+                    .attr("dy", ".35em")
+                    .text(function (d) {
+                        if (pagenum == 1) {
+                            return "text1";
+                        }
+                        else if (pagenum == 2) {
+                            return "text2";
+                        }
+                        else if (pagenum == 3) {
+                            return "text3";
+                        }
+                        else if (pagenum == 4) {
+                            return "text4";
+                        }
+
+                    });
+
+
+                // LOADING DATASETS
+                // The overall Sustainability Score
+                const sorted_overall = await d3.csv("sorted_overall.csv");
+                sorted_overall.forEach(function (d) {
+                    d.Overall = parseInt(d.Overall);
+                });
+
+                // Water Footprint Values
+                const footprint = await d3.csv("sorted_waterfootprint.csv");
+                footprint.forEach(function (d) {
+                    d.Overall = parseInt(d.Overall);
+                });
+
+                //Fisheries Depleted Percentage
+                const fisherie = await d3.csv("sorted_fisheries.csv");
+                fisherie.forEach(function (d) {
+                    d.Overall = parseInt(d.Overall);
+                });
+
+                //Imports
+                const imports = await d3.csv("sorted_imports.csv");
+                imports.forEach(function (d) {
+                    d.Overall = parseInt(d.Overall);
+                });
+
+                createButton_one(svgbuttons, -70, -30, 125, "Overall Sustainability", update, sorted_overall);
+                createButton_one(svgbuttons, 60, -30, 120, "Fisheries Depleted", update, fisherie);
+                createButton_one(svgbuttons, 185, -30, 100, "Water Imports", update, imports);
+                createButton_one(svgbuttons, 300, -30, 100, "Water Footprint", update, footprint);
+
+                // X AXIS
+                var x = d3.scaleLinear()
+                    .range([5, width - margin.left - margin.right]);
+                var xAxis = svg1.append("g")
+                    .attr("transform", "translate(0," + height + ")")
+                    .style("font-size", "12px");
+
+                // Y AXIS
+                var y = d3.scaleBand()
+                    .range([0, height])
+                    .padding(0.2);
+                var yAxis = svg1.append("g")
+                    .attr("class", "myYaxis")
+                    .style("font-size", "12px");
+
+
+                // UPDATE FUNCTION
+                function update(data) {
+
+                    // Y UPDATE
+                    y.domain(data.map(function (d) { return d.Country; }));
+                    yAxis.call(d3.axisLeft(y))
+
+                    // X UPDATE
+                    if (d3.min(data, function (d) { return d.Overall }) < 0) {
+                        x.domain([d3.min(data, function (d) { return d.Overall }), d3.max(data, function (d) { return d.Overall })]);
+                    }
+                    else {
+                        x.domain([0, d3.max(data, function (d) { return d.Overall }) * 1.05]);
+                    }
+
+                    xAxis.transition().duration(2000).call(d3.axisBottom(x));
+
+
+                    // VARIABLE to HANDLE UPDATES
+                    var up = svg1.selectAll("rect")
+                        .data(data)
+
+                    // APPENDING BARS
+                    up.enter()
+                        .append("rect")
+                        .merge(up)
+                        .transition()
+                        .duration(2000)
+                        .attr("x", 5)
+                        .attr("y", function (d) { return y(d.Country); })
+                        .attr("height", "17px")
+                        .attr("width", function (d) { return x(d.Overall) - 5; })
+                        .attr("fill", function (d) {
+                            if (d.Country == "United States") {
+                                return blue;
+                            }
+                            else {
+                                return grey;
+                            }
+                        })
+                        .attr("stroke", function (d) {
+                            if (d.Overall < 0) {
+                                console.log("less")
+                                return "lightgreen";
+                            }
+                            else {
+                                return "black";
+                            }
+                        })
+                        .attr("stroke-width", function (d) {
+                            if (d.Overall < 0) {
+                                return "2";
+                            } else {
+                                return "0";
+                            }
+                        }
+                        )
+
+
+                    up.exit()
+                        .remove()
+                }
+
+                // PLOT
+                update(sorted_overall);
+
             }
-        })
-        .attr("stroke-width", function(d) {
-            if (d.Overall<0){
-                return "2";
-            }else {
-                return "0";
-            }
-            }
-            )
 
-
-up
-    .exit()
-    .remove()
-    }
-
-// PLOT
-update(sorted_overall);
-      
-      }
-
-    
-      requestData();
-
-      </script>
-
-    
-
-
+            requestData();
+        </script>
     </body>
-    </html>
+</html>
