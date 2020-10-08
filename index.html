@@ -62,8 +62,6 @@
 
         <div id="buttons"></div>
 
-        <div class="paratext"></div>
-
         <p id="textbox" class="para">In an era of nearly irreversible climate change and increased need for sustainability, one of the most accessible avenues we have for accessing change is through reflection of our habits, especially in personal resource and waste management. However, no two countries are alike in geography, agriculture, or climate, and as a result, the data regarding agricultural sustainability varies greatly depending on where you live.
 
         A country’s agricultural sustainability comprises the backbone of its social,
@@ -373,28 +371,21 @@
 // AXIS LABELS
                     var labs = svg1.selectAll("#xaxislab")
 
-                    var paraclear = textbox.selectAll("#paragraph")
-
                     labs.text("");
-                    paraclear.text("");
 
                     var xlabel;
 
                         if (data == sorted_overall) {
                             xlabel= "Sustainability Index Score (out of 100)";
-                            paragraphtext = intropara;
                         }
                         else if (data== fisherie) {
                             xlabel= "Fisherie Stock Depleted (%)";
-                            paragraphtext = secondpara;
                         }
                         else if (data== imports) {
                             xlabel= "Virtual Blue Water Net Imports (Mm3)";
-                            paragraphtext = thirdpara;
                         }
                         else if (data== footprint) {
                             xlabel= "Average Water Footprint (Mm3 per year)";
-                            paragraphtext = fourthpara;
                         }
 
                      svg1.append("text")
