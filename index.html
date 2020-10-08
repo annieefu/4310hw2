@@ -28,6 +28,27 @@
         strong {
             color: rgba(0, 95, 99, 0.959)
         }
+
+
+        ul {
+            font-family: 'Open Sans', sans-serif;
+            margin-left:30px;
+        }
+        .para {
+            font-family: 'Open Sans', sans-serif; 
+            color: blueColor; 
+            font-size: 16px; 
+            margin-top: -6px; 
+            margin-left: 0px; 
+            width: 470px; 
+            margin-bottom: 15px; 
+            padding-left: 35px;
+        }
+
+        b{
+            color: #FF7A62;
+        }
+
     </style>
 
 </head>
@@ -37,16 +58,39 @@
 
         <h1
             style="font-family: Raleway; text-align: left; color: #1F5673; font-size: 45; padding-left: 35px; padding-top: 0px; padding-bottom: 15px;">
-            How Sustainable is your Grocery Basket?</h1>
+            How Sustainable is your U.S. Grocery List?</h1>
 
         <div id="buttons"></div>
 
-        <p id="textbox" style="font-family: Open Sans; color: #1F5673; font-size: 16px; 
+        <div class="paratext"></div>
+
+        <p id="textbox" class="para">In an era of nearly irreversible climate change and increased need for sustainability, one of the most accessible avenues we have for accessing change is through reflection of our habits, especially in personal resource and waste management. However, no two countries are alike in geography, agriculture, or climate, and as a result, the data regarding agricultural sustainability varies greatly depending on where you live.
+
+        A country’s agricultural sustainability comprises the backbone of its social,
+        political, and economic wellbeing, and one of the largest factors of evaluating 
+        agricultural sustainability is a country’s <b>water. </b> In the calculation of 
+        The Economist Intelligence Unit’s Food Sustainability Index, the following 
+        components of country-wide water data were incorporated:
+
+
+            <ul>
+
+            <li> Percentage of national fisheries depleted</li>
+            <li> Virtual Blue Water Net Imports (in cubic millimeters)</li>
+            <li> Water footprint per person, per capita</li>
+            </ul><p class="para">
+            As seen on the visualization, of the top twenty most populous countries with available data, 
+            the United States ranks in the middle for overall sustainability, <b>but what about for individual 
+            factors relating to water?</b>
+            </p>
+
+
+        <p id="textbox" style="font-family: Open Sans; background-color: black; color: #1F5673; font-size: 16px; 
         margin-top: -6px; margin-left: 20px; width: 400px; margin-bottom: 15px; 
         padding-left: 35px;"></p>
 
         <!-- Vis  -->
-        <div id="countries_viz" style="margin-left: 600px; margin-top: -430px;"></div>
+        <div id="countries_viz" style="margin-left: 600px; margin-top: -530px;"></div>
         <p style="font-family: Open Sans; color: #1F5673; font-size: 16px; margin-top: -6px; margin-left: 20px; width: 1200px; margin-bottom: 15px; 
         padding-left: 35px;">
         A major contributor to US's water footprint is through what we consume. Water footprint is usually broken down into three categories: green, blue, grey. 
@@ -61,6 +105,15 @@
         <div style="text-align: center;"><svg height="1000" width="1000" class="receiptVis"/></div>
 
         <script>
+
+            function tpgFunction() {
+                var x = document.getElementById("myDIV");
+                if (x.innerHTML === "Hello") {
+                  x.innerHTML = "Swapped text!";
+                } else {
+                  x.innerHTML = "Hello";
+                }
+              }
 
             // PAGE VARIABLES
             var pagenum = 1;
@@ -143,7 +196,7 @@
                     .text(buttonText)
                     .style("text-anchor", "middle")
                     .style("font-family", "Open Sans")
-                    .style("font-size", "14px")
+                    .style("font-size", "13px")
                     .style("cursor", "pointer")
                     .style("alignment-baseline", "middle")
                     .on("click", function () {
@@ -160,10 +213,13 @@
                         else if (buttonText == "Water Footprint") {
                             pagenum = 4;
                         }
-                    });
-            }
+                    })
+                      
+                    };
 
 
+
+                    
             // SVG1 VARIABLES
             var margin = { top: 30, right: 00, bottom: 70, left: 100 },
                 width = 700 - margin.left - margin.right,
@@ -181,40 +237,17 @@
 
             var svgbuttons = d3.select("#buttons")
                 .append("svg")
-                .attr("width", "500px")
+                .attr("width", "580px")
                 .attr("height", "50px")
                 .append("g")
                 .attr("transform",
                     "translate(" + margin.left + "," + margin.top + ")");
 
-            var svgtext = d3.select("#textbox")
-                .append("svg")
-                .attr("width", "500px")
-                .attr("height", "400px")
-                .append("g");
-
+         
 
             const requestData = async function () {
 
-                svgtext.append("text")
-                    .attr("x", 0)
-                    .attr("y", 20)
-                    .attr("dy", ".35em")
-                    .text(function (d) {
-                        if (pagenum == 1) {
-                            return "text1";
-                        }
-                        else if (pagenum == 2) {
-                            return "text2";
-                        }
-                        else if (pagenum == 3) {
-                            return "text3";
-                        }
-                        else if (pagenum == 4) {
-                            return "text4";
-                        }
-
-                    });
+            
 
 
                 // LOADING DATASETS
@@ -250,10 +283,10 @@
                 
                 drawReceiptVis(produceData, "receiptVis");
 
-                createButton_one(svgbuttons, -70, -30, 125, "Overall Sustainability", update, sorted_overall);
-                createButton_one(svgbuttons, 60, -30, 120, "Fisheries Depleted", update, fisherie);
-                createButton_one(svgbuttons, 185, -30, 100, "Water Imports", update, imports);
-                createButton_one(svgbuttons, 300, -30, 100, "Water Footprint", update, footprint);
+                createButton_one(svgbuttons, -70, -30, 145, "Overall Sustainability", update, sorted_overall);
+                createButton_one(svgbuttons, 90, -30, 125, "Fisheries Depleted", update, fisherie);
+                createButton_one(svgbuttons, 226, -30, 100, "Water Imports", update, imports);
+                createButton_one(svgbuttons, 340, -30, 115, "Water Footprint", update, footprint);
 
                 // X AXIS
                 var x = d3.scaleLinear()
@@ -273,6 +306,8 @@
 
                 // UPDATE FUNCTION
                 function update(data) {
+                    
+
 
                     // Y UPDATE
                     y.domain(data.map(function (d) { return d.Country; }));
@@ -292,6 +327,11 @@
                     // VARIABLE to HANDLE UPDATES
                     var up = svg1.selectAll("rect")
                         .data(data)
+                    
+                
+
+                    
+
 
                     // APPENDING BARS
                     up.enter()
@@ -329,7 +369,43 @@
                         }
                         )
 
+                        
+// AXIS LABELS
+                    var labs = svg1.selectAll("#xaxislab")
 
+                    var paraclear = textbox.selectAll("#paragraph")
+
+                    labs.text("");
+                    paraclear.text("");
+
+                    var xlabel;
+
+                        if (data == sorted_overall) {
+                            xlabel= "Sustainability Index Score (out of 100)";
+                            paragraphtext = intropara;
+                        }
+                        else if (data== fisherie) {
+                            xlabel= "Fisherie Stock Depleted (%)";
+                            paragraphtext = secondpara;
+                        }
+                        else if (data== imports) {
+                            xlabel= "Virtual Blue Water Net Imports (Mm3)";
+                            paragraphtext = thirdpara;
+                        }
+                        else if (data== footprint) {
+                            xlabel= "Average Water Footprint (Mm3 per year)";
+                            paragraphtext = fourthpara;
+                        }
+
+                     svg1.append("text")
+                     .attr("id", "xaxislab")
+                    .attr("x", 265 )
+                    .attr("y", 538 )
+                    .attr("font-size", "11px")
+                    .style("font-family", "Open-Sans, sans-serif")
+                    .style("text-anchor", "middle")
+                    .text(xlabel)
+                    
                     up.exit()
                         .remove()
                 }
@@ -842,5 +918,7 @@
 
             requestData();
         </script>
+
+
     </body>
 </html>
